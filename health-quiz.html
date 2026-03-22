@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VitalCheck — Online Health Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --mint: #d4f5e9;
+    --mint-mid: #7ECFAD;
+    --mint-deep: #1a9e6e;
+    --mint-dark: #0d5c40;
+    --sage: #e8f2ec;
+    --cream: #faf8f3;
+    --warm-white: #fffef9;
+    --charcoal: #1c1f1d;
+    --mid: #4a5250;
+    --muted: #8a9491;
+    --rose: #f5e0dd;
+    --rose-mid: #e89080;
+    --amber-light: #fdf0dc;
+    --amber-mid: #e8a840;
+    --sky: #dceef8;
+    --sky-mid: #5ba3d4;
+    --lavender: #ece8f8;
+    --lavender-mid: #8b7fd4;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── DECORATIVE BG ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 10% 20%, rgba(212,245,233,0.6) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 350px at 90% 80%, rgba(220,238,248,0.5) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 300px at 50% 50%, rgba(236,232,248,0.3) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 28px 0 0;
+    text-align: center;
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--mint-dark);
+    color: var(--mint);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 18px;
+  }
+
+  .logo-badge svg { width: 14px; height: 14px; }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px, 6vw, 56px);
+    color: var(--charcoal);
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+
+  header h1 em {
+    font-style: italic;
+    color: var(--mint-deep);
+  }
+
+  header p {
+    font-size: 16px;
+    color: var(--mid);
+    max-width: 480px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    background: var(--warm-white);
+    border-radius: 100px;
+    height: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--mint-mid), var(--mint-deep));
+    border-radius: 100px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  .progress-label span:last-child { color: var(--mint-deep); font-weight: 500; }
+
+  /* ── QUIZ CARD ── */
+  .quiz-card {
+    background: var(--warm-white);
+    border-radius: 24px;
+    border: 1px solid rgba(0,0,0,0.07);
+    padding: 40px 44px;
+    margin-bottom: 24px;
+    animation: slideUp 0.4s cubic-bezier(0.4,0,0.2,1) both;
+    box-shadow: 0 2px 32px rgba(0,80,50,0.06);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .category-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  .q-number {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .q-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(20px, 3.5vw, 26px);
+    line-height: 1.35;
+    color: var(--charcoal);
+    margin-bottom: 32px;
+  }
+
+  /* ── OPTIONS ── */
+  .options { display: flex; flex-direction: column; gap: 12px; }
+
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--cream);
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--charcoal);
+    text-align: left;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--mint);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--mint-mid);
+    transform: translateX(4px);
+    box-shadow: -3px 0 0 var(--mint-mid);
+  }
+
+  .option-btn:hover:not(:disabled)::before { opacity: 0.4; }
+
+  .option-btn .opt-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--warm-white);
+    border: 1.5px solid rgba(0,0,0,0.1);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mid);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s;
+  }
+
+  .option-btn .opt-text { position: relative; z-index: 1; line-height: 1.4; }
+
+  .option-btn.selected {
+    border-color: var(--mint-deep);
+    background: var(--mint);
+    transform: translateX(4px);
+    box-shadow: -3px 0 0 var(--mint-deep);
+  }
+
+  .option-btn.selected .opt-label {
+    background: var(--mint-deep);
+    border-color: var(--mint-deep);
+    color: white;
+  }
+
+  .option-btn.correct {
+    border-color: var(--mint-deep);
+    background: var(--mint);
+    animation: correctPulse 0.4s ease;
+  }
+
+  .option-btn.correct .opt-label {
+    background: var(--mint-deep);
+    border-color: var(--mint-deep);
+    color: white;
+  }
+
+  .option-btn.wrong {
+    border-color: var(--rose-mid);
+    background: var(--rose);
+    animation: wrongShake 0.4s ease;
+  }
+
+  .option-btn.wrong .opt-label {
+    background: var(--rose-mid);
+    border-color: var(--rose-mid);
+    color: white;
+  }
+
+  @keyframes correctPulse {
+    0% { transform: scale(1) translateX(4px); }
+    50% { transform: scale(1.01) translateX(4px); }
+    100% { transform: scale(1) translateX(4px); }
+  }
+
+  @keyframes wrongShake {
+    0%,100% { transform: translateX(4px); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* ── EXPLANATION ── */
+  .explanation {
+    margin-top: 20px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--mid);
+    border-left: 3px solid;
+    animation: fadeIn 0.3s ease;
+    display: none;
+  }
+
+  .explanation.show { display: block; }
+  .explanation.correct-exp { background: rgba(126,207,173,0.15); border-color: var(--mint-mid); }
+  .explanation.wrong-exp { background: rgba(232,144,128,0.15); border-color: var(--rose-mid); }
+  .explanation strong { color: var(--charcoal); display: block; margin-bottom: 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── NAV ── */
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+  }
+
+  .btn-next {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    background: var(--mint-deep);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+  }
+
+  .btn-next.visible {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+  }
+
+  .btn-next:hover { background: var(--mint-dark); transform: translateY(-1px); }
+
+  .btn-next svg { width: 16px; height: 16px; transition: transform 0.2s; }
+  .btn-next:hover svg { transform: translateX(3px); }
+
+  .score-mini {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .score-mini strong { color: var(--mint-deep); }
+
+  /* ── RESULTS ── */
+  #results-screen {
+    display: none;
+    animation: slideUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+  }
+
+  .results-hero {
+    background: var(--warm-white);
+    border-radius: 24px;
+    border: 1px solid rgba(0,0,0,0.07);
+    padding: 48px 44px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 32px rgba(0,80,50,0.06);
+  }
+
+  .score-ring {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .ring-bg { fill: none; stroke: var(--sage); stroke-width: 10; }
+  .score-ring .ring-fill { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1); }
+  .score-ring .score-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-ring .score-pct {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--charcoal);
+    line-height: 1;
+  }
+
+  .score-ring .score-sub {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .results-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(24px, 4vw, 34px);
+    color: var(--charcoal);
+    margin-bottom: 10px;
+  }
+
+  .results-subtitle {
+    font-size: 15px;
+    color: var(--mid);
+    line-height: 1.6;
+    max-width: 420px;
+    margin: 0 auto 28px;
+  }
+
+  .results-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .result-stat {
+    background: var(--cream);
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+
+  .result-stat .stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .result-stat .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── HEALTH TIP ── */
+  .health-tip {
+    background: var(--warm-white);
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.07);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .tip-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--mint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .tip-content h3 { font-size: 14px; font-weight: 600; color: var(--charcoal); margin-bottom: 5px; }
+  .tip-content p { font-size: 14px; color: var(--mid); line-height: 1.6; }
+
+  /* ── REVIEW ── */
+  .review-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+
+  .review-item {
+    background: var(--warm-white);
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.07);
+    padding: 18px 22px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .review-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .review-icon.correct { background: var(--mint); color: var(--mint-dark); }
+  .review-icon.wrong { background: var(--rose); color: var(--rose-mid); }
+
+  .review-q { font-size: 14px; font-weight: 500; color: var(--charcoal); margin-bottom: 4px; }
+  .review-a { font-size: 13px; color: var(--mid); }
+  .review-a span { font-weight: 500; }
+  .review-a .correct-a { color: var(--mint-deep); }
+  .review-a .wrong-a { color: var(--rose-mid); text-decoration: line-through; }
+
+  /* ── BTN RESTART ── */
+  .btn-restart {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    background: var(--mint-deep);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-restart:hover { background: var(--mint-dark); transform: translateY(-1px); }
+
+  /* ── WELCOME / START ── */
+  #start-screen { text-align: center; }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 28px 0;
+    text-align: left;
+  }
+
+  .cat-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: var(--warm-white);
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.07);
+    font-size: 14px;
+    color: var(--mid);
+  }
+
+  .cat-pill span:first-child { font-size: 20px; }
+  .cat-pill strong { color: var(--charcoal); font-size: 14px; display: block; }
+
+  .btn-start {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 40px;
+    background: var(--mint-deep);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 8px 24px rgba(13,92,64,0.25);
+  }
+
+  .btn-start:hover { background: var(--mint-dark); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(13,92,64,0.3); }
+
+  .disclaimer {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  /* ── HISTORY PANEL ── */
+  .history-section {
+    margin-top: 20px;
+  }
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .history-header h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--charcoal);
+  }
+  .btn-clear {
+    font-size: 12px;
+    color: var(--rose-mid);
+    background: none;
+    border: 1px solid var(--rose-mid);
+    border-radius: 100px;
+    padding: 5px 14px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-clear:hover { background: var(--rose); }
+
+  .history-empty {
+    background: var(--warm-white);
+    border-radius: 16px;
+    border: 1px dashed rgba(0,0,0,0.1);
+    padding: 28px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .history-item {
+    background: var(--warm-white);
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.07);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .history-rank {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .history-info { flex: 1; }
+  .history-info .h-date { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .history-info .h-score { font-size: 15px; font-weight: 500; color: var(--charcoal); }
+  .history-info .h-cats { font-size: 12px; color: var(--mid); margin-top: 2px; }
+
+  .history-pct {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    color: var(--charcoal);
+    flex-shrink: 0;
+  }
+
+  .best-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: var(--amber-light);
+    color: #7a4800;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ── DB STATUS BANNER ── */
+  .db-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--mint);
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--mint-dark);
+  }
+  .db-banner strong { font-weight: 600; }
+  .db-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--mint-deep);
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  /* ── FOOTER ── */
+  footer { text-align: center; padding: 24px 0 32px; font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 560px) {
+    .quiz-card, .results-hero { padding: 28px 22px; }
+    .categories-grid { grid-template-columns: 1fr; }
+    .results-stats { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+      VitalCheck
+    </div>
+    <h1>How healthy is<br>your <em>lifestyle?</em></h1>
+    <p>15 evidence-based questions across 5 health domains. Get your personalised health score in under 3 minutes.</p>
+  </header>
+
+  <!-- START SCREEN -->
+  <div id="start-screen">
+    <div class="db-banner">
+      <div class="db-dot"></div>
+      <div><strong>localStorage database active</strong> — your scores are saved automatically on this device</div>
+    </div>
+    <div class="categories-grid">
+      <div class="cat-pill"><span>🥗</span><div><strong>Nutrition</strong>Diet & eating habits</div></div>
+      <div class="cat-pill"><span>🏃</span><div><strong>Exercise</strong>Physical activity</div></div>
+      <div class="cat-pill"><span>😴</span><div><strong>Sleep</strong>Rest & recovery</div></div>
+      <div class="cat-pill"><span>🧠</span><div><strong>Mental Health</strong>Stress & mindfulness</div></div>
+      <div class="cat-pill"><span>🚫</span><div><strong>Habits</strong>Lifestyle choices</div></div>
+      <div class="cat-pill"><span>💧</span><div><strong>Hydration</strong>Water & fluids</div></div>
+    </div>
+    <button class="btn-start" onclick="startQuiz()">
+      Begin health quiz
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <p class="disclaimer">⚕ This quiz is for educational purposes only and does not constitute medical advice.</p>
+    <div class="history-section" id="start-history"></div>
+  </div>
+  <div id="quiz-screen" style="display:none">
+    <div class="progress-wrap"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label">
+      <span id="progress-text">Question 1 of 15</span>
+      <span id="score-label">Score: 0</span>
+    </div>
+    <div class="quiz-card" id="quiz-card">
+      <div class="category-tag" id="cat-tag"></div>
+      <div class="q-number" id="q-number"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <div class="explanation" id="explanation"></div>
+      <div class="nav-row">
+        <div class="score-mini">Score: <strong id="score-live">0</strong> / <span id="max-so-far">0</span></div>
+        <button class="btn-next" id="btn-next" onclick="nextQuestion()">
+          Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="results-screen">
+    <div class="results-hero">
+      <div class="score-ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle class="ring-bg" cx="70" cy="70" r="60"/>
+          <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="377"/>
+        </svg>
+        <div class="score-text">
+          <div class="score-pct" id="score-pct">0%</div>
+          <div class="score-sub">Score</div>
+        </div>
+      </div>
+      <div class="results-title" id="results-title"></div>
+      <div class="results-subtitle" id="results-subtitle"></div>
+      <div class="results-stats">
+        <div class="result-stat">
+          <div class="stat-val" id="stat-correct" style="color:var(--mint-deep)">0</div>
+          <div class="stat-label">Correct</div>
+        </div>
+        <div class="result-stat">
+          <div class="stat-val" id="stat-wrong" style="color:var(--rose-mid)">0</div>
+          <div class="stat-label">Incorrect</div>
+        </div>
+        <div class="result-stat">
+          <div class="stat-val" id="stat-score" style="color:var(--amber-mid)">0</div>
+          <div class="stat-label">Points</div>
+        </div>
+      </div>
+      <button class="btn-restart" onclick="restartQuiz()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+        Try again
+      </button>
+    </div>
+
+    <div class="health-tip" id="health-tip"></div>
+
+    <h3 style="font-family:'DM Serif Display',serif; font-size:20px; margin-bottom:14px; color:var(--charcoal)">Review your answers</h3>
+    <div class="review-list" id="review-list"></div>
+
+    <div class="history-section" id="results-history"></div>
+  </div>
+
+  <footer>VitalCheck &copy; 2026 &nbsp;·&nbsp; Educational content only &nbsp;·&nbsp; Not medical advice</footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  localStorage DATABASE
+//  Key: "vitalcheck_db"
+//  Schema: { attempts: [...], bestScore: number, totalAttempts: number }
+// ═══════════════════════════════════════════════
+
+const DB_KEY = 'vitalcheck_db';
+
+function dbLoad() {
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    if (!raw) return { attempts: [], bestScore: 0, bestPct: 0, totalAttempts: 0 };
+    return JSON.parse(raw);
+  } catch(e) { return { attempts: [], bestScore: 0, bestPct: 0, totalAttempts: 0 }; }
+}
+
+function dbSave(data) {
+  try { localStorage.setItem(DB_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function dbSaveAttempt(attemptObj) {
+  const db = dbLoad();
+  db.attempts.unshift(attemptObj); // newest first
+  if (db.attempts.length > 20) db.attempts = db.attempts.slice(0, 20); // keep last 20
+  db.totalAttempts = (db.totalAttempts || 0) + 1;
+  if (attemptObj.pct > (db.bestPct || 0)) {
+    db.bestPct = attemptObj.pct;
+    db.bestScore = attemptObj.score;
+  }
+  dbSave(db);
+}
+
+function dbClear() {
+  localStorage.removeItem(DB_KEY);
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER HISTORY
+// ═══════════════════════════════════════════════
+
+function renderHistory(targetId) {
+  const db = dbLoad();
+  const el = document.getElementById(targetId);
+  if (!el) return;
+
+  if (db.attempts.length === 0) {
+    el.innerHTML = `
+      <div class="history-header"><h3>Past attempts</h3></div>
+      <div class="history-empty">No saved attempts yet. Complete a quiz to see your history here.</div>
+    `;
+    return;
+  }
+
+  const bestPct = db.bestPct || 0;
+  const items = db.attempts.slice(0, 5).map((a, i) => {
+    const isBest = a.pct === bestPct && db.attempts.filter(x => x.pct === bestPct).indexOf(a) === 0;
+    const rankColor = i === 0
+      ? 'background:#EAF3DE;color:#3B6D11'
+      : i === 1
+      ? 'background:#FAEEDA;color:#854F0B'
+      : 'background:#F1EFE8;color:#5F5E5A';
+    const pctColor = a.pct >= 75 ? '#1a9e6e' : a.pct >= 50 ? '#e8a840' : '#e89080';
+    const catSummary = Object.entries(a.catScores || {})
+      .map(([cat, v]) => `${cat}: ${Math.round((v.pts/v.max)*100)}%`)
+      .join(' · ');
+    return `
+      <div class="history-item">
+        <div class="history-rank" style="${rankColor}">#${i+1}</div>
+        <div class="history-info">
+          <div class="h-date">${a.date}${isBest ? '<span class="best-badge">🏆 Best</span>' : ''}</div>
+          <div class="h-score">${a.score} / ${a.maxScore} pts &nbsp;·&nbsp; ${a.correct}/${a.total} correct</div>
+          <div class="h-cats">${catSummary}</div>
+        </div>
+        <div class="history-pct" style="color:${pctColor}">${a.pct}%</div>
+      </div>
+    `;
+  }).join('');
+
+  const showMore = db.attempts.length > 5
+    ? `<div style="text-align:center;margin-top:10px;font-size:12px;color:var(--muted)">${db.attempts.length - 5} more attempt${db.attempts.length-5>1?'s':''} not shown</div>`
+    : '';
+
+  el.innerHTML = `
+    <div class="history-header">
+      <h3>Past attempts <span style="font-size:14px;font-weight:400;color:var(--muted);font-family:'DM Sans',sans-serif">(${db.attempts.length} saved)</span></h3>
+      <button class="btn-clear" onclick="clearHistory()">Clear all</button>
+    </div>
+    <div class="history-list">${items}</div>
+    ${showMore}
+  `;
+}
+
+function clearHistory() {
+  if (!confirm('Delete all saved quiz history from this device?')) return;
+  dbClear();
+  renderHistory('start-history');
+  renderHistory('results-history');
+}
+
+// ═══════════════════════════════════════════════
+//  QUIZ LOGIC
+// ═══════════════════════════════════════════════
+
+const questions = [
+  // NUTRITION
+  { cat:"Nutrition", catColor:"#3B6D11", catBg:"#EAF3DE", emoji:"🥗",
+    q:"How many servings of fruits and vegetables do you eat on an average day?",
+    opts:["Less than 1","1–2 servings","3–4 servings","5 or more"],
+    correct:3, points:[0,1,2,3],
+    explain:"Adults are recommended to eat at least 5 portions of fruit and vegetables per day. They provide essential vitamins, minerals, and dietary fibre." },
+  { cat:"Nutrition", catColor:"#3B6D11", catBg:"#EAF3DE", emoji:"🥗",
+    q:"How often do you eat ultra-processed foods (fast food, packaged snacks, sugary drinks)?",
+    opts:["Daily or more","4–6 times a week","1–3 times a week","Rarely or never"],
+    correct:3, points:[0,1,2,3],
+    explain:"Ultra-processed foods are linked to obesity, heart disease, and type 2 diabetes. Limiting them to occasional treats significantly improves long-term health." },
+  { cat:"Nutrition", catColor:"#3B6D11", catBg:"#EAF3DE", emoji:"🥗",
+    q:"Which of the following is the healthiest breakfast choice?",
+    opts:["Sugary cereal with whole milk","White toast with jam","Oats with berries and nuts","Pastry and fruit juice"],
+    correct:2, points:[0,0,3,1],
+    explain:"Oats provide complex carbohydrates and beta-glucan for sustained energy. Berries add antioxidants and nuts add healthy fats and protein." },
+  // EXERCISE
+  { cat:"Exercise", catColor:"#185FA5", catBg:"#E6F1FB", emoji:"🏃",
+    q:"How many minutes of moderate exercise (e.g. brisk walking) do you get per week?",
+    opts:["Under 30 minutes","30–75 minutes","75–150 minutes","150+ minutes"],
+    correct:3, points:[0,1,2,3],
+    explain:"WHO recommends at least 150–300 minutes of moderate-intensity aerobic activity per week for adults to maintain good health and reduce disease risk." },
+  { cat:"Exercise", catColor:"#185FA5", catBg:"#E6F1FB", emoji:"🏃",
+    q:"How many days per week do you do strength or resistance training?",
+    opts:["Never","1 day","2 days","3 or more days"],
+    correct:3, points:[0,1,2,3],
+    explain:"WHO guidelines recommend muscle-strengthening activities on 2 or more days per week, as they improve metabolism, bone density, and functional strength." },
+  { cat:"Exercise", catColor:"#185FA5", catBg:"#E6F1FB", emoji:"🏃",
+    q:"How many steps do you approximately walk each day?",
+    opts:["Under 3,000","3,000–5,999","6,000–9,999","10,000 or more"],
+    correct:3, points:[0,1,2,3],
+    explain:"Research shows that aiming for 7,000–10,000 steps daily is associated with reduced all-cause mortality and improved cardiovascular health." },
+  // SLEEP
+  { cat:"Sleep", catColor:"#534AB7", catBg:"#EEEDFE", emoji:"😴",
+    q:"How many hours of sleep do you typically get on a weeknight?",
+    opts:["Less than 5","5–6 hours","7–9 hours","More than 9 hours"],
+    correct:2, points:[0,1,3,1],
+    explain:"Adults need 7–9 hours of sleep per night. Both too little and too much sleep are associated with increased risk of obesity, heart disease, and mental health issues." },
+  { cat:"Sleep", catColor:"#534AB7", catBg:"#EEEDFE", emoji:"😴",
+    q:"How often do you use screens (phone, TV) within 30 minutes of bedtime?",
+    opts:["Every night","Most nights","Occasionally","Rarely or never"],
+    correct:3, points:[0,1,2,3],
+    explain:"Blue light from screens suppresses melatonin production, delaying sleep onset. A screen-free wind-down routine improves sleep quality significantly." },
+  // MENTAL HEALTH
+  { cat:"Mental Health", catColor:"#854F0B", catBg:"#FAEEDA", emoji:"🧠",
+    q:"How would you rate your average daily stress level?",
+    opts:["Very high — overwhelmed often","High — frequently stressed","Moderate — manageable","Low — generally calm"],
+    correct:3, points:[0,1,2,3],
+    explain:"Chronic high stress elevates cortisol, which damages the immune system, cardiovascular system, and mental health. Stress management is a core health pillar." },
+  { cat:"Mental Health", catColor:"#854F0B", catBg:"#FAEEDA", emoji:"🧠",
+    q:"How often do you practice any mindfulness, meditation, or relaxation technique?",
+    opts:["Never","Rarely","A few times a week","Daily"],
+    correct:3, points:[0,1,2,3],
+    explain:"Regular mindfulness practice reduces anxiety and depression, lowers blood pressure, and improves emotional regulation according to multiple studies." },
+  { cat:"Mental Health", catColor:"#854F0B", catBg:"#FAEEDA", emoji:"🧠",
+    q:"How would you describe your social connections and support network?",
+    opts:["Very isolated — few/no close relationships","Mostly isolated","Some close relationships","Strong, supportive social network"],
+    correct:3, points:[0,1,2,3],
+    explain:"Strong social connections are linked to a 50% increased likelihood of survival. Loneliness is as harmful to health as smoking 15 cigarettes a day." },
+  // HABITS
+  { cat:"Habits", catColor:"#993C1D", catBg:"#FAECE7", emoji:"🚫",
+    q:"Do you currently smoke cigarettes or use tobacco products?",
+    opts:["Yes, daily","Yes, occasionally","I've quit","Never smoked"],
+    correct:3, points:[0,1,2,3],
+    explain:"Smoking is the leading preventable cause of disease and death. Quitting at any age significantly reduces risks of cancer, heart disease, and stroke." },
+  { cat:"Habits", catColor:"#993C1D", catBg:"#FAECE7", emoji:"🚫",
+    q:"How many alcoholic drinks do you consume per week on average?",
+    opts:["14 or more","7–13","1–6","None"],
+    correct:3, points:[0,1,2,3],
+    explain:"No level of alcohol consumption is completely safe. Low intake (under 7 units/week) carries minimal risk; high intake is linked to liver disease, cancer, and more." },
+  // HYDRATION
+  { cat:"Hydration", catColor:"#185FA5", catBg:"#dceef8", emoji:"💧",
+    q:"How many glasses (250ml) of water do you drink daily?",
+    opts:["1–2 glasses","3–5 glasses","6–7 glasses","8 or more glasses"],
+    correct:3, points:[0,1,2,3],
+    explain:"General guidance recommends around 8 glasses (2 litres) of water per day. Proper hydration supports kidney function, cognition, and energy levels." },
+  { cat:"Hydration", catColor:"#185FA5", catBg:"#dceef8", emoji:"💧",
+    q:"What is your main daily beverage choice?",
+    opts:["Sugary soft drinks","Fruit juices","Tea or coffee","Water"],
+    correct:3, points:[0,1,2,3],
+    explain:"Water is the healthiest choice. Sugary drinks add empty calories and spike blood sugar. Tea and coffee in moderation are fine, but pure water is optimal." },
+];
+
+let current = 0, score = 0, answers = [], answered = false;
+
+const catInfo = {
+  "Nutrition":    { color:"#3B6D11", bg:"#EAF3DE", emoji:"🥗" },
+  "Exercise":     { color:"#185FA5", bg:"#E6F1FB", emoji:"🏃" },
+  "Sleep":        { color:"#534AB7", bg:"#EEEDFE", emoji:"😴" },
+  "Mental Health":{ color:"#854F0B", bg:"#FAEEDA", emoji:"🧠" },
+  "Habits":       { color:"#993C1D", bg:"#FAECE7", emoji:"🚫" },
+  "Hydration":    { color:"#185FA5", bg:"#dceef8", emoji:"💧" },
+};
+
+function startQuiz() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const labels = ['A','B','C','D'];
+  const ci = catInfo[q.cat];
+  const total = questions.length;
+  const pct = (current / total) * 100;
+
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `Question ${current+1} of ${total}`;
+  document.getElementById('score-label').textContent = `Score: ${score}`;
+  document.getElementById('score-live').textContent = score;
+  document.getElementById('max-so-far').textContent = current;
+
+  document.getElementById('cat-tag').style.background = ci.bg;
+  document.getElementById('cat-tag').style.color = ci.color;
+  document.getElementById('cat-tag').textContent = ci.emoji + '  ' + q.cat;
+  document.getElementById('q-number').textContent = `Question ${current+1}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  const exp = document.getElementById('explanation');
+  exp.className = 'explanation';
+  exp.style.display = 'none';
+  exp.innerHTML = '';
+
+  const btn = document.getElementById('btn-next');
+  btn.className = 'btn-next';
+  if (current < total - 1) {
+    btn.innerHTML = 'Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+  } else {
+    btn.innerHTML = 'See my results <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+  }
+
+  const optDiv = document.getElementById('options');
+  optDiv.innerHTML = q.opts.map((o,i) => `
+    <button class="option-btn" id="opt-${i}" onclick="selectAnswer(${i})">
+      <span class="opt-label">${labels[i]}</span>
+      <span class="opt-text">${o}</span>
+    </button>
+  `).join('');
+
+  const card = document.getElementById('quiz-card');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'slideUp 0.35s cubic-bezier(0.4,0,0.2,1) both';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const isCorrect = idx === q.correct;
+  const pts = q.points[idx];
+  score += pts;
+  answers.push({ q: q.q, chosen: idx, correct: q.correct, pts, maxPts: Math.max(...q.points), opts: q.opts, cat: q.cat });
+
+  q.opts.forEach((_, i) => {
+    const btn = document.getElementById('opt-' + i);
+    btn.disabled = true;
+    if (i === q.correct) { btn.classList.add('correct'); }
+    else if (i === idx && !isCorrect) { btn.classList.add('wrong'); }
+  });
+
+  const exp = document.getElementById('explanation');
+  exp.style.display = 'block';
+  exp.className = 'explanation show ' + (isCorrect ? 'correct-exp' : 'wrong-exp');
+  exp.innerHTML = `<strong>${isCorrect ? '✓ Correct!' : '✗ ' + q.opts[q.correct] + ' is correct'}</strong>${q.explain}`;
+
+  document.getElementById('btn-next').classList.add('visible');
+  document.getElementById('score-live').textContent = score;
+  document.getElementById('score-label').textContent = `Score: ${score}`;
+}
+
+function nextQuestion() {
+  if (!answered) return;
+  current++;
+  if (current >= questions.length) { showResults(); return; }
+  renderQuestion();
+}
+
+function showResults() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  const rs = document.getElementById('results-screen');
+  rs.style.display = 'block';
+
+  const maxScore = questions.reduce((a,q) => a + Math.max(...q.points), 0);
+  const pct = Math.round((score / maxScore) * 100);
+
+  // ── SAVE TO localStorage DB ──
+  const catScores = {};
+  answers.forEach(a => {
+    if (!catScores[a.cat]) catScores[a.cat] = { pts:0, max:0 };
+    catScores[a.cat].pts += a.pts;
+    catScores[a.cat].max += a.maxPts;
+  });
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+  const attemptRecord = {
+    id: now.getTime(),
+    date: dateStr,
+    score,
+    maxScore,
+    pct,
+    correct: answers.filter(a => a.chosen === a.correct).length,
+    total: answers.length,
+    catScores,
+  };
+
+  dbSaveAttempt(attemptRecord);
+
+  // ── RING ANIMATION ──
+  setTimeout(() => {
+    const circ = 2 * Math.PI * 60;
+    const offset = circ - (pct / 100) * circ;
+    const ring = document.getElementById('ring-fill');
+    const col = pct >= 75 ? '#1a9e6e' : pct >= 50 ? '#e8a840' : '#e89080';
+    ring.style.stroke = col;
+    ring.style.strokeDashoffset = offset;
+  }, 300);
+
+  document.getElementById('score-pct').textContent = pct + '%';
+
+  const correct = answers.filter(a => a.chosen === a.correct).length;
+  const wrong = answers.length - correct;
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-wrong').textContent = wrong;
+  document.getElementById('stat-score').textContent = score + '/' + maxScore;
+
+  // ── DB STATS IN SUBTITLE ──
+  const db = dbLoad();
+  let title, subtitle;
+  if (pct >= 85) { title = "Excellent health awareness!"; subtitle = "You have a strong understanding of healthy lifestyle habits. Keep up the great work — your body will thank you."; }
+  else if (pct >= 65) { title = "Good health knowledge!"; subtitle = "You're on the right track. There are a few areas to focus on — small consistent improvements make a big difference."; }
+  else if (pct >= 40) { title = "Room to grow"; subtitle = "You have solid foundations but there's meaningful room to improve. Review the areas where you scored lower and consider small daily changes."; }
+  else { title = "Time to prioritise your health"; subtitle = "This is a valuable starting point. Small consistent changes across nutrition, sleep, exercise, and stress can transform your wellbeing over time."; }
+
+  const bestNote = db.totalAttempts > 1 ? ' This is attempt #' + db.totalAttempts + '. Your all-time best is ' + db.bestPct + '%.' : ' This is your first attempt — it\'s saved to your device!';
+  document.getElementById('results-title').textContent = title;
+  document.getElementById('results-subtitle').textContent = subtitle + bestNote;
+
+  // ── HEALTH TIP ──
+  const weakest = Object.entries(catScores).sort((a,b) => (a[1].pts/a[1].max) - (b[1].pts/b[1].max))[0][0];
+  const tips = {
+    "Nutrition": { icon:"🥗", title:"Nutrition tip", text:"Try the 'half-plate rule': fill half your plate with vegetables and fruits at every meal. It's a simple visual habit that dramatically increases nutrient intake." },
+    "Exercise": { icon:"🏃", title:"Exercise tip", text:"Start with a 20-minute walk after dinner each evening. Research shows this single habit improves insulin sensitivity, mood, and cardiovascular health significantly." },
+    "Sleep": { icon:"😴", title:"Sleep tip", text:"Set a consistent bedtime — even on weekends. Your circadian rhythm thrives on regularity. Dim lights 1 hour before bed and keep your room cool (around 18°C)." },
+    "Mental Health": { icon:"🧠", title:"Mental health tip", text:"Try '5–4–3–2–1' grounding when stressed: notice 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, 1 you can taste. It activates the parasympathetic nervous system." },
+    "Habits": { icon:"🚫", title:"Habit tip", text:"Replace one harmful habit at a time rather than all at once. Habit-stacking — linking a new habit to an existing routine — increases success rates dramatically." },
+    "Hydration": { icon:"💧", title:"Hydration tip", text:"Place a 1-litre water bottle on your desk each morning. Finishing it twice a day meets most adults' hydration needs without needing to count glasses." },
+  };
+  const t = tips[weakest];
+  document.getElementById('health-tip').innerHTML = `
+    <div class="tip-icon">${t.icon}</div>
+    <div class="tip-content">
+      <h3>Your personalised tip: ${t.title}</h3>
+      <p>${t.text}</p>
+    </div>
+  `;
+
+  // ── REVIEW ──
+  const rev = document.getElementById('review-list');
+  rev.innerHTML = answers.map((a,i) => {
+    const isCorrect = a.chosen === a.correct;
+    return `
+      <div class="review-item">
+        <div class="review-icon ${isCorrect?'correct':'wrong'}">${isCorrect?'✓':'✗'}</div>
+        <div>
+          <div class="review-q">Q${i+1}. ${a.q}</div>
+          <div class="review-a">
+            ${!isCorrect ? `<span class="wrong-a">Your answer: ${a.opts[a.chosen]}</span><br>` : ''}
+            <span class="correct-a">Correct: ${a.opts[a.correct]}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // ── HISTORY ON RESULTS PAGE ──
+  renderHistory('results-history');
+}
+
+function restartQuiz() {
+  current = 0; score = 0; answers = []; answered = false;
+  document.getElementById('results-screen').style.display = 'none';
+  document.getElementById('ring-fill').style.strokeDashoffset = '377';
+  document.getElementById('quiz-screen').style.display = 'block';
+  renderQuestion();
+}
+
+// ── INIT: render history on start screen ──
+renderHistory('start-history');
+</script>
+</body>
+</html>
